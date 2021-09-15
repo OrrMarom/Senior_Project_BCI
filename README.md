@@ -1,1 +1,1 @@
-# Senior-Project---BCI
+# Senior_Project_BCI
