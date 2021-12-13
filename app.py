@@ -30,6 +30,31 @@ frame_s_short.pack(pady=30, padx=30)
 button_connect = tk.Button(frame_buttons, text="Connect Headset", width=25, height=5, padx=10, pady=5, fg="white", bg="#28817C",
     font=(18))
 button_connect.pack()
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 
 button_control_cursor = tk.Button(frame_buttons, text="Control Cursor", width=25, height=5, padx=10, pady=5, fg="white", bg="#28817C",
     font=(18))
@@ -48,3 +73,18 @@ button_settings = tk.Button(frame_buttons, text="Settings", width=25, height=5, 
 button_settings.pack()
 
 root.mainloop()
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+#
+#
+#comments
