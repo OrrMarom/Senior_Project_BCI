@@ -1,5 +1,4 @@
 # Senior_Project_BCI
-
 Our application is focused on using a EEG headset to control a computer's cursor and trigger mental shortcuts. The goal is to allow the user to interact with the computer solely using the headset. While this application can be used by anyone with a supported headset, it is aimed towards people with disabilities who have difficulty using regular computer equipment.
 
 ## Hardware
