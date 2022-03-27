@@ -1,7 +1,8 @@
 import sys
+from tkinter import X
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget)
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget, QStackedWidget)
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 import argparse
@@ -18,42 +19,61 @@ class Window(QWidget):
         today = date.today()
         self.date = today.strftime("%b-%d-%Y")
 
-        # create main layout
-        main_win = QHBoxLayout()
+        # layouts
+        self.mainLayout = QHBoxLayout() # layout for the entire app
+        self.stackedLayout = QVBoxLayout() # layout for the stacked widget on the right
+        self.menuLayout = QVBoxLayout() # layout for the menu widget on the left
 
-        # Create sub layouts
-        graph_layout = QHBoxLayout()
-        menu_layout = QVBoxLayout()
+        # widgets going into the stackedLayout widget
+        self.graphWidget = pg.GraphicsLayoutWidget() # brainwave graph
+        self.boardshimWidget = QWidget() # headset connection
+        self.cursorWidget = QWidget() # control cursor
+        self.saveWidget = QWidget() # save data
+        self.tutorialWidget = QWidget() # tutorial
+        self.settingsWidget = QWidget() # settings
 
-        # Create the widgets for the graph window
-        graph = pg.GraphicsLayoutWidget(title="test")
+        # stacked widget & adding widgets to it
+        self.stackedWidget = QStackedWidget()
+        self.stackedWidget.addWidget(self.graphWidget)
+        self.stackedWidget.addWidget(self.boardshimWidget)
+        self.stackedWidget.addWidget(self.cursorWidget)
+        self.stackedWidget.addWidget(self.saveWidget)
+        self.stackedWidget.addWidget(self.tutorialWidget)
+        self.stackedWidget.addWidget(self.settingsWidget)
 
-        # create the widgets for the menu window
-        button1 = QPushButton("*Connect Headset*")
-        button2 = QPushButton("Control Cursor")
-        button3 = QPushButton("Save Data")
-        button4 = QPushButton("*Tutorial*")
-        button5 = QPushButton("*Settings*")
+        # buttons for menu widget (note: index is based on the order above)
+        self.button1 = QPushButton("Brainwave Visualizer") # index 0
+        self.button2 = QPushButton("*Connect Headset*") # index 1
+        self.button3 = QPushButton("*Control Cursor*") # index 2
+        self.button4 = QPushButton("Save Data") # index 3
+        self.button5 = QPushButton("*Tutorial*") # index 4
+        self.button6 = QPushButton("*Settings*") # index 5
 
-        # creating signals for button
-        button3.clicked.connect(self.saveData)
+        # Add buttons to the menu layout
+        self.menuLayout.addWidget(self.button1)
+        self.menuLayout.addWidget(self.button2)
+        self.menuLayout.addWidget(self.button3)
+        self.menuLayout.addWidget(self.button4)
+        self.menuLayout.addWidget(self.button5)
+        self.menuLayout.addWidget(self.button6)
 
-        # Add widgets to the menu layout
-        menu_layout.addWidget(button1)
-        menu_layout.addWidget(button2)
-        menu_layout.addWidget(button3)
-        menu_layout.addWidget(button4)
-        menu_layout.addWidget(button5)
+        # creating signals for buttons
+        self.button1.clicked.connect(lambda: self.buttonWork(1))
+        self.button2.clicked.connect(lambda: self.buttonWork(2))
+        self.button3.clicked.connect(lambda: self.buttonWork(3))
+        self.button4.clicked.connect(lambda: self.buttonWork(4))
+        self.button5.clicked.connect(lambda: self.buttonWork(5))
+        self.button6.clicked.connect(lambda: self.buttonWork(6))
 
-        # add widgets to the graph layout
-        graph_layout.addWidget(graph)
+        # add widgets to the stackedwidget layout
+        self.stackedLayout.addWidget(self.stackedWidget)
 
         # put sub layouts in main window
-        main_win.addLayout(menu_layout)
-        main_win.addLayout(graph_layout)
+        self.mainLayout.addLayout(self.menuLayout)
+        self.mainLayout.addLayout(self.stackedLayout)
 
         # Set the layout on the application's window
-        self.setLayout(main_win)
+        self.setLayout(self.mainLayout)
         print(self.children())
 
         # initiating time series and fields for ts
@@ -64,17 +84,17 @@ class Window(QWidget):
         self.window_size = 4
         self.num_points = self.window_size * self.sampling_rate
 
-        self._init_timeseries(graph)
+        self._init_timeseries(self.graphWidget)
         self.timer = QtCore.QTimer()
         self.timer.setInterval(50)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
-    def _init_timeseries(self,graph):
+    def _init_timeseries(self, graphWidget):
         self.plots = list()
         self.curves = list()
         for i in range(len(self.exg_channels)):
-            p = graph.addPlot(row=i,col=0)
+            p = graphWidget.addPlot(row=i,col=0)
             p.showAxis('left', True)
             p.setMenuEnabled('left', False)
             p.showAxis('bottom', False)
@@ -111,18 +131,22 @@ class Window(QWidget):
 
     def saveData(self):
         dataHeader = "{}{}".format(self.userName, self.date)
-        # below tests showing the data format in terminal
-        # df = pd.DataFrame(np.transpose(self.data))
-        # print('Data From the Board')
-        # print(df.head(10))
-        # DataFilter.write_file(dataHeader, 'test.csv', 'w')
         DataFilter.write_file(self.data, '{}'.format(dataHeader), 'a') # 'a' appends to file, 'w' for overwrite
-        
-        # restored_data = DataFilter.read_file('{}'.format(dataHeader))
-        # below tests pulling data from the file
-        # restored_df = pd.DataFrame(np.transpose(restored_data))
-        # print('Data From the File')
-        # print(restored_df.head(10))
+
+    def buttonWork(self, x): # x refers to the button number, which is index + 1 for currentindex on a stacked widget
+        if x is 1:
+            self.stackedWidget.setCurrentIndex(0)
+        elif x is 2:
+            self.stackedWidget.setCurrentIndex(1)
+        elif x is 3:
+            self.stackedWidget.setCurrentIndex(2)
+        elif x is 4:
+            self.stackedWidget.setCurrentIndex(3)
+            self.saveData()
+        elif x is 5:
+            self.stackedWidget.setCurrentIndex(4)
+        elif x is 6:
+            self.stackedWidget.setCurrentIndex(5)
 
 if __name__ == "__main__":
     BoardShim.enable_dev_board_logger()
