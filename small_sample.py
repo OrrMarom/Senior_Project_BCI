@@ -2,7 +2,7 @@ import sys
 from tkinter import X
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget, QStackedWidget)
+from PyQt5.QtWidgets import *
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 import argparse
@@ -64,6 +64,29 @@ class Window(QWidget):
         self.button4.clicked.connect(lambda: self.buttonWork(4))
         self.button5.clicked.connect(lambda: self.buttonWork(5))
         self.button6.clicked.connect(lambda: self.buttonWork(6))
+
+        # Brainwave Page
+
+        # Connection Page (boardshim)
+        self.connectionTitle = QLabel(self.boardshimWidget)
+        self.connectionTitle.setText("Boardshim Connection Page")
+
+        # Control Cursor Page
+        self.cursorControlTitle = QLabel(self.cursorWidget)
+        self.cursorControlTitle.setText("Control Cursor Page")
+
+        # Save Data Page
+        self.saveDataTitle = QLabel(self.saveWidget)
+        self.saveDataTitle.setText("Saved Data Page")
+
+        # Tutorial Page
+        self.tutorialTitle = QLabel(self.tutorialWidget)
+        self.tutorialTitle.setText("Tutorial Page")
+
+        # Settings Page
+        self.settingsTitle = QLabel(self.settingsWidget)
+        self.settingsTitle.setText("Settings Page")
+
 
         # add widgets to the stackedwidget layout
         self.stackedLayout.addWidget(self.stackedWidget)
