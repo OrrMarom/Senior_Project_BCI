@@ -1,15 +1,53 @@
+import sys
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtCore
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget)
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 import argparse
 import logging
 
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui, QtCore
-
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
-
-
-class Graph:
+class Window(QWidget):
     def __init__(self, board_shim):
+        super().__init__()
+        self.setWindowTitle("Big Brain")
+
+        # create main layout
+        main_win = QHBoxLayout()
+
+        # Create sub layouts
+        graph_layout = QHBoxLayout()
+        menu_layout = QVBoxLayout()
+
+        # Create the widgets for the graph window
+        graph = pg.GraphicsLayoutWidget(title="test")
+
+        # create the widgets for the menu window
+        button1 = QPushButton("show graph")
+        button2 = QPushButton("start control")
+        button3 = QPushButton("save")
+        button4 = QPushButton("stop")
+        button5 = QPushButton("exit")
+
+        # Add widgets to the menu layout
+        menu_layout.addWidget(button1)
+        menu_layout.addWidget(button2)
+        menu_layout.addWidget(button3)
+        menu_layout.addWidget(button4)
+        menu_layout.addWidget(button5)
+
+        # add widgets to the graph layout
+        graph_layout.addWidget(graph)
+
+        # put sub layouts in main window
+        main_win.addLayout(menu_layout)
+        main_win.addLayout(graph_layout)
+
+        # Set the layout on the application's window
+        self.setLayout(main_win)
+        print(self.children())
+
+        # initiating time series and fields for ts
         self.board_id = board_shim.get_board_id()
         self.board_shim = board_shim
         self.exg_channels = BoardShim.get_exg_channels(self.board_id)
@@ -18,64 +56,16 @@ class Graph:
         self.window_size = 4
         self.num_points = self.window_size * self.sampling_rate
 
-        self.app = QtGui.QApplication([])
-        self.win = pg.GraphicsWindow(title='BigBrain - Computer Mouse Control via EEG',size=(800, 600)) 
-        self.win.setBackground('white')
-
-        self._init_timeseries()
-
-        timer = QtCore.QTimer()
-        timer.timeout.connect(self.update)
-        timer.start(self.update_speed_ms)
-        QtGui.QApplication.instance().exec_()
+        # adding lines to the graph
+        for i in range(4):
+            graph.addPlot(row=i,col=0) # creates the plot
 
 
-    def _init_timeseries(self):
-        self.plots = list()
-        self.curves = list()
-        for i in range(len(self.exg_channels)):
-            p = self.win.addPlot(row=i,col=0)
-            p.showAxis('left', True)
-            p.setMenuEnabled('left', False)
-            p.showAxis('bottom', False)
-            p.setMenuEnabled('bottom', False)
-            if i == 0:
-                p.setTitle('4-Channel EEG TimeSeries Plot')
-            self.plots.append(p)
-            if i is 0:
-                curve = p.plot(pen = {"color":"#2FAED0"})
-            elif i is 1:
-                curve = p.plot(pen = {"color":"#A12FD0"})
-            elif i is 2:
-                curve = p.plot(pen = {"color":"#D0512F"})
-            elif i is 3:
-                curve = p.plot(pen = {"color":"#5ED02F"})
-            else:
-                curve = p.plot()
-            self.curves.append(curve)
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
-    def update(self):
-        data = self.board_shim.get_current_board_data(self.num_points)
-        for count, channel in enumerate(self.exg_channels):
-            # plot timeseries
-            DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
-            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
-                                        FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
-                                        FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 50.0, 4.0, 2,
-                                        FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 60.0, 4.0, 2,
-                                        FilterTypes.BUTTERWORTH.value, 0)
-            self.curves[count].setData(data[channel].tolist())
-
-        self.app.processEvents()
-
-
-def main():
     BoardShim.enable_dev_board_logger()
     logging.basicConfig(level=logging.DEBUG)
-
     parser = argparse.ArgumentParser()
     # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False,
@@ -105,11 +95,15 @@ def main():
     params.timeout = args.timeout
     params.file = args.file
 
+
     try:
         board_shim = BoardShim(args.board_id, params)
         board_shim.prepare_session()
         board_shim.start_stream(450000, args.streamer_params)
-        Graph(board_shim)
+
+        window = Window(board_shim)
+        window.show()
+        sys.exit(app.exec_())
     except BaseException:
         logging.warning('Exception', exc_info=True)
     finally:
@@ -117,7 +111,3 @@ def main():
         if board_shim.is_prepared():
             logging.info('Releasing session')
             board_shim.release_session()
-
-
-if __name__ == '__main__':
-    main()
