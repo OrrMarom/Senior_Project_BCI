@@ -6,11 +6,17 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 import argparse
 import logging
+import numpy as np
+import pandas as pd
+from datetime import date
 
 class Window(QWidget):
     def __init__(self, board_shim):
         super().__init__()
         self.setWindowTitle("Big Brain")
+        self.userName = 'johnsmith'
+        today = date.today()
+        self.date = today.strftime("%b-%d-%Y")
 
         # create main layout
         main_win = QHBoxLayout()
@@ -23,11 +29,14 @@ class Window(QWidget):
         graph = pg.GraphicsLayoutWidget(title="test")
 
         # create the widgets for the menu window
-        button1 = QPushButton("show graph")
-        button2 = QPushButton("start control")
-        button3 = QPushButton("save")
-        button4 = QPushButton("stop")
-        button5 = QPushButton("exit")
+        button1 = QPushButton("*Connect Headset*")
+        button2 = QPushButton("Control Cursor")
+        button3 = QPushButton("Save Data")
+        button4 = QPushButton("*Tutorial*")
+        button5 = QPushButton("*Settings*")
+
+        # creating signals for button
+        button3.clicked.connect(self.saveData)
 
         # Add widgets to the menu layout
         menu_layout.addWidget(button1)
@@ -61,10 +70,6 @@ class Window(QWidget):
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
-        # # adding lines to the graph
-        # for i in range(4):
-        #     graph.addPlot(row=i,col=0) # creates the plot
-
     def _init_timeseries(self,graph):
         self.plots = list()
         self.curves = list()
@@ -90,21 +95,34 @@ class Window(QWidget):
             self.curves.append(curve)
 
     def update(self):
-        data = self.board_shim.get_current_board_data(self.num_points)
+        self.data = self.board_shim.get_current_board_data(self.num_points)
         for count, channel in enumerate(self.exg_channels):
             # plot timeseries
-            DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
-            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
+            DataFilter.detrend(self.data[channel], DetrendOperations.CONSTANT.value)
+            DataFilter.perform_bandpass(self.data[channel], self.sampling_rate, 51.0, 100.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
+            DataFilter.perform_bandpass(self.data[channel], self.sampling_rate, 51.0, 100.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 50.0, 4.0, 2,
+            DataFilter.perform_bandstop(self.data[channel], self.sampling_rate, 50.0, 4.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
-            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 60.0, 4.0, 2,
+            DataFilter.perform_bandstop(self.data[channel], self.sampling_rate, 60.0, 4.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
-            self.curves[count].setData(data[channel].tolist())
+            self.curves[count].setData(self.data[channel].tolist())
 
-        # self.app.processEvents()
+    def saveData(self):
+        dataHeader = "{}{}".format(self.userName, self.date)
+        # below tests showing the data format in terminal
+        # df = pd.DataFrame(np.transpose(self.data))
+        # print('Data From the Board')
+        # print(df.head(10))
+        # DataFilter.write_file(dataHeader, 'test.csv', 'w')
+        DataFilter.write_file(self.data, '{}'.format(dataHeader), 'a') # 'a' appends to file, 'w' for overwrite
+        
+        # restored_data = DataFilter.read_file('{}'.format(dataHeader))
+        # below tests pulling data from the file
+        # restored_df = pd.DataFrame(np.transpose(restored_data))
+        # print('Data From the File')
+        # print(restored_df.head(10))
 
 if __name__ == "__main__":
     BoardShim.enable_dev_board_logger()
