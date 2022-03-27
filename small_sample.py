@@ -1,6 +1,6 @@
 import sys
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore
+from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QWidget)
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
@@ -52,20 +52,64 @@ class Window(QWidget):
         self.board_shim = board_shim
         self.exg_channels = BoardShim.get_exg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
-        self.update_speed_ms = 50
         self.window_size = 4
         self.num_points = self.window_size * self.sampling_rate
 
-        # adding lines to the graph
-        for i in range(4):
-            graph.addPlot(row=i,col=0) # creates the plot
+        self._init_timeseries(graph)
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(50)
+        self.timer.timeout.connect(self.update)
+        self.timer.start()
 
+        # # adding lines to the graph
+        # for i in range(4):
+        #     graph.addPlot(row=i,col=0) # creates the plot
+
+    def _init_timeseries(self,graph):
+        self.plots = list()
+        self.curves = list()
+        for i in range(len(self.exg_channels)):
+            p = graph.addPlot(row=i,col=0)
+            p.showAxis('left', True)
+            p.setMenuEnabled('left', False)
+            p.showAxis('bottom', False)
+            p.setMenuEnabled('bottom', False)
+            if i == 0:
+                p.setTitle('4-Channel EEG TimeSeries Plot')
+            self.plots.append(p)
+            if i is 0:
+                curve = p.plot(pen = {"color":"#2FAED0"})
+            elif i is 1:
+                curve = p.plot(pen = {"color":"#A12FD0"})
+            elif i is 2:
+                curve = p.plot(pen = {"color":"#D0512F"})
+            elif i is 3:
+                curve = p.plot(pen = {"color":"#5ED02F"})
+            else:
+                curve = p.plot()
+            self.curves.append(curve)
+
+    def update(self):
+        data = self.board_shim.get_current_board_data(self.num_points)
+        for count, channel in enumerate(self.exg_channels):
+            # plot timeseries
+            DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
+            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
+                                        FilterTypes.BUTTERWORTH.value, 0)
+            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 51.0, 100.0, 2,
+                                        FilterTypes.BUTTERWORTH.value, 0)
+            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 50.0, 4.0, 2,
+                                        FilterTypes.BUTTERWORTH.value, 0)
+            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 60.0, 4.0, 2,
+                                        FilterTypes.BUTTERWORTH.value, 0)
+            self.curves[count].setData(data[channel].tolist())
+
+        # self.app.processEvents()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
     BoardShim.enable_dev_board_logger()
     logging.basicConfig(level=logging.DEBUG)
+
     parser = argparse.ArgumentParser()
     # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False,
@@ -95,8 +139,8 @@ if __name__ == "__main__":
     params.timeout = args.timeout
     params.file = args.file
 
-
     try:
+        app = QApplication(sys.argv)
         board_shim = BoardShim(args.board_id, params)
         board_shim.prepare_session()
         board_shim.start_stream(450000, args.streamer_params)
