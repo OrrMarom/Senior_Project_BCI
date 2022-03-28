@@ -93,9 +93,10 @@ def print_bands(avgBandPowers):
     """
     if jawClench:
         result+="*Jaw is being clenched*"
-        #testMoveCursor()
+        testMoveCursorLeft()
     elif eyeBlink:  
         result+="*Eyes are closed*"
+        testMoveCursorRight()
     else:
         result+="                       "
     
@@ -113,9 +114,13 @@ def checkEyeBlinking(delta_band, gamma_band):
         return True
     else:
         return False
-def testMoveCursor():
+def testMoveCursorLeft():
     # moves in 1 direction only
-    pyautogui.drag(100, 0, duration=0.5)
+    pyautogui.moveTo(-100, 0, duration=0.5)
+
+def testMoveCursorRight():
+    # moves in 1 direction only
+    pyautogui.moveTo(100, 0, duration=0.5)
 
 if __name__ == "__main__":
     main()
