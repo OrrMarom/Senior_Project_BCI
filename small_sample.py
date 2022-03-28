@@ -1,15 +1,16 @@
+from audioop import avg
 import sys
-from tkinter import X
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtWidgets import *
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, WindowFunctions, DetrendOperations
 import argparse
 import logging
 import numpy as np
 import pandas as pd
 from datetime import date
+import time
 
 class Window(QWidget):
     def __init__(self, board_shim):
@@ -65,7 +66,7 @@ class Window(QWidget):
         self.button5.clicked.connect(lambda: self.buttonWork(5))
         self.button6.clicked.connect(lambda: self.buttonWork(6))
 
-        # Brainwave Page
+        # Brainwave Page is the default index position
 
         # Connection Page (boardshim)
         self.connectionTitle = QLabel(self.boardshimWidget)
@@ -86,7 +87,6 @@ class Window(QWidget):
         # Settings Page
         self.settingsTitle = QLabel(self.settingsWidget)
         self.settingsTitle.setText("Settings Page")
-
 
         # add widgets to the stackedwidget layout
         self.stackedLayout.addWidget(self.stackedWidget)
@@ -163,6 +163,7 @@ class Window(QWidget):
             self.stackedWidget.setCurrentIndex(1)
         elif x is 3:
             self.stackedWidget.setCurrentIndex(2)
+            self.getBandPower()
         elif x is 4:
             self.stackedWidget.setCurrentIndex(3)
             self.saveData()
@@ -170,6 +171,28 @@ class Window(QWidget):
             self.stackedWidget.setCurrentIndex(4)
         elif x is 6:
             self.stackedWidget.setCurrentIndex(5)
+
+    def getBandPower(self):
+        avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
+
+        delta_band = round(avgBandPowers[0][0] * 100, 2)
+        theta_band = round(avgBandPowers[0][1] * 100, 2)
+        alpha_band = round(avgBandPowers[0][2] * 100, 2)
+        beta_band = round(avgBandPowers[0][3] * 100, 2)
+        gamma_band = round(avgBandPowers[0][4] * 100, 2)
+
+        result = f"""
+        Bands
+        ----------
+        Delta[1-4]: {delta_band}%     
+        Theta[4-8]: {theta_band}%     
+        Alpha[8-13]: {alpha_band}%     
+        Beta[13-30]: {beta_band}%     
+        Gamma[30-50]: {gamma_band}%     
+
+        """
+        print(result)
+        sys.stdout.flush()
 
 if __name__ == "__main__":
     BoardShim.enable_dev_board_logger()
