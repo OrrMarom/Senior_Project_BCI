@@ -1,12 +1,11 @@
 import argparse
 import time
 import sys
-import numpy as np
 
-import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+from brainflow.data_filter import DataFilter
 
+import pyautogui
 
 def main():
     BoardShim.enable_dev_board_logger()
@@ -71,12 +70,12 @@ def print_bands(avgBandPowers):
     beta_band = round(avgBandPowers[0][3] * 100, 2)
     gamma_band = round(avgBandPowers[0][4] * 100, 2)
 
-    # Print the bands table
-    #blink = False
-    #if(blink):
-    #    goback = "\033[F" * 12
-    #else:
-    #    goback = "\033[F" * 10
+    jawClench = False
+    jawClench = checkJawClenching(gamma_band)
+    if (jawClench):
+        goback = "\033[F" * 12
+    else:
+        goback = "\033[F" * 10
 
     goback = "\033[F" * 10
     result = f"""{goback}
@@ -89,13 +88,24 @@ def print_bands(avgBandPowers):
     Gamma[30-45]: {gamma_band}%     
 
     """
-    #if(blink):
-    #    result+="*Eyes are closed*"
-    #else:
-    #    result+="                  "
+    if jawClench:
+        result+="*Jaw is being clenched*"
+        testMoveCursor()
+    else:
+        result+="                       "
 
     print(result)
     sys.stdout.flush()
+
+def checkJawClenching(gamma_band):
+    if gamma_band > 50:
+        return True
+    else:
+        return False
+
+def testMoveCursor():
+    # moves in 1 direction only
+    pyautogui.drag(100, 0, duration=0.5)
 
 if __name__ == "__main__":
     main()

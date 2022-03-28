@@ -163,7 +163,7 @@ class Window(QWidget):
             self.stackedWidget.setCurrentIndex(1)
         elif x is 3:
             self.stackedWidget.setCurrentIndex(2)
-            self.getBandPower()
+            # self.printBandData() # not working, prints once and won't update again
         elif x is 4:
             self.stackedWidget.setCurrentIndex(3)
             self.saveData()
@@ -172,27 +172,52 @@ class Window(QWidget):
         elif x is 6:
             self.stackedWidget.setCurrentIndex(5)
 
-    def getBandPower(self):
-        avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
+    def printBandData(self):
+        print("\n\n\n\n\n\n\n\n\n")
+        refresh_rate=0.5 #in seconds
+        for i in range(1000):
+            avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
+            self.print_bands(avgBandPowers)
+            time.sleep(refresh_rate)
 
+    def print_bands(self, avgBandPowers):
         delta_band = round(avgBandPowers[0][0] * 100, 2)
         theta_band = round(avgBandPowers[0][1] * 100, 2)
         alpha_band = round(avgBandPowers[0][2] * 100, 2)
         beta_band = round(avgBandPowers[0][3] * 100, 2)
         gamma_band = round(avgBandPowers[0][4] * 100, 2)
 
-        result = f"""
+        jawClench = False
+        jawClench = self.checkJawClenching(gamma_band)
+        if (jawClench):
+            goback = "\033[F" * 12
+        else:
+            goback = "\033[F" * 10
+
+        goback = "\033[F" * 10
+        result = f"""{goback}
         Bands
         ----------
         Delta[1-4]: {delta_band}%     
         Theta[4-8]: {theta_band}%     
         Alpha[8-13]: {alpha_band}%     
         Beta[13-30]: {beta_band}%     
-        Gamma[30-50]: {gamma_band}%     
+        Gamma[30-45]: {gamma_band}%     
 
         """
+        if jawClench:
+            result+="*Jaw is being clenched*"
+        else:
+            result+="                       "
+
         print(result)
         sys.stdout.flush()
+
+    def checkJawClenching(self, gamma_band):
+        if gamma_band > 40:
+            return True
+        else:
+            return False
 
 if __name__ == "__main__":
     BoardShim.enable_dev_board_logger()
