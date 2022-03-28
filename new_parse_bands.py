@@ -18,13 +18,13 @@ def main():
     parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False,
                         default=0)
     parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
-    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='COM69')
     parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
     parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
     parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards',
-                        required=True)
+                        required=False, default='1')
     parser.add_argument('--file', type=str, help='file', required=False, default='')
     args = parser.parse_args()
 
@@ -41,6 +41,8 @@ def main():
 
     board = BoardShim(args.board_id, params)
     exg_channels = BoardShim.get_exg_channels(args.board_id)
+    # Force it to use only channel 1 for easy testing
+    exg_channels = [1]
     sampling_rate = BoardShim.get_sampling_rate(args.board_id)
     board.prepare_session()
 
@@ -70,8 +72,9 @@ def print_bands(avgBandPowers):
     beta_band = round(avgBandPowers[0][3] * 100, 2)
     gamma_band = round(avgBandPowers[0][4] * 100, 2)
 
-    jawClench = False
     jawClench = checkJawClenching(gamma_band)
+    eyeBlink = checkEyeBlinking(delta_band,gamma_band)
+
     if (jawClench):
         goback = "\033[F" * 12
     else:
@@ -90,19 +93,26 @@ def print_bands(avgBandPowers):
     """
     if jawClench:
         result+="*Jaw is being clenched*"
-        testMoveCursor()
+        #testMoveCursor()
+    elif eyeBlink:  
+        result+="*Eyes are closed*"
     else:
         result+="                       "
-
+    
     print(result)
     sys.stdout.flush()
 
 def checkJawClenching(gamma_band):
-    if gamma_band > 50:
+    if gamma_band > 40:
         return True
     else:
         return False
 
+def checkEyeBlinking(delta_band, gamma_band):
+    if delta_band > 50 and gamma_band < 2:
+        return True
+    else:
+        return False
 def testMoveCursor():
     # moves in 1 direction only
     pyautogui.drag(100, 0, duration=0.5)
