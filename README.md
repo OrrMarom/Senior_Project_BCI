@@ -8,11 +8,11 @@ We are using the **OpenBCI Ganglion** board with 4 channels.
 To interact with the board we are primarily using the Brainflow library. The library supports several popular EEG headsets, among which is the OpenBCI Ganglion board.
 The library allows us to stream data from the board in realtime. It also has APIs for signal processing and ML models.
 
-To assist with processing the data we are also using Numpy and Pandas
+To assist with processing the data we are also using Numpy and Pandas along with PyQtGraph for displaying it
 
 To control the device's cursor/keyboard we are using PyAutoGUI
 
-To create our GUI we are using Python Tkinter
+To create our GUI we are using Python PyQt5
 
 ## User Requirements
 - User shall be able to connect the headset to the software.
