@@ -32,3 +32,4 @@
 *.app
 .python-version
 .python-version
+get-pip.py
