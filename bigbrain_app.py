@@ -1,4 +1,3 @@
-from audioop import avg
 import sys
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
@@ -49,6 +48,10 @@ class Window(QWidget):
         self.button4 = QPushButton("Save Data") # index 3
         self.button5 = QPushButton("*Tutorial*") # index 4
         self.button6 = QPushButton("*Settings*") # index 5
+
+        # button colors
+        self.button1.resize(100, 32)
+        # self.button1.setStyleSheet("color: white; background-color: #127B89; border: 0px")
 
         # Add buttons to the menu layout
         self.menuLayout.addWidget(self.button1)
@@ -125,13 +128,13 @@ class Window(QWidget):
             if i == 0:
                 p.setTitle('4-Channel EEG TimeSeries Plot')
             self.plots.append(p)
-            if i is 0:
+            if i == 0:
                 curve = p.plot(pen = {"color":"#2FAED0"})
-            elif i is 1:
+            elif i == 1:
                 curve = p.plot(pen = {"color":"#A12FD0"})
-            elif i is 2:
+            elif i == 2:
                 curve = p.plot(pen = {"color":"#D0512F"})
-            elif i is 3:
+            elif i == 3:
                 curve = p.plot(pen = {"color":"#5ED02F"})
             else:
                 curve = p.plot()
@@ -157,19 +160,19 @@ class Window(QWidget):
         DataFilter.write_file(self.data, '{}'.format(dataHeader), 'a') # 'a' appends to file, 'w' for overwrite
 
     def buttonWork(self, x): # x refers to the button number, which is index + 1 for currentindex on a stacked widget
-        if x is 1:
+        if x == 1:
             self.stackedWidget.setCurrentIndex(0)
-        elif x is 2:
+        elif x == 2:
             self.stackedWidget.setCurrentIndex(1)
-        elif x is 3:
+        elif x == 3:
             self.stackedWidget.setCurrentIndex(2)
             # self.printBandData() # not working, prints once and won't update again
-        elif x is 4:
+        elif x == 4:
             self.stackedWidget.setCurrentIndex(3)
-            self.saveData()
-        elif x is 5:
+            # self.saveData()
+        elif x == 5:
             self.stackedWidget.setCurrentIndex(4)
-        elif x is 6:
+        elif x == 6:
             self.stackedWidget.setCurrentIndex(5)
 
     def printBandData(self):
