@@ -61,6 +61,7 @@ class MainAppWindow(QWidget):
         for btn_name in self.button_name_obj:
             # loop through list of names and create QPushButton for each, then assign it to self
             temp_btn = QPushButton(self.button_name_obj[btn_name])
+            temp_btn.setFixedSize(QtCore.QSize(200, 100))
             temp_btn.clicked.connect((lambda d: lambda:self._button_router(d))(page_counter))
             page_counter+=1
             # add button variables and widgets to self
@@ -181,9 +182,11 @@ class MainAppWindow(QWidget):
             # connect to headset
             self._connect_to_headset(1)
         elif page_index == 1:
+            self.setWindowTitle("Big Brain - Brainwave Graph")
             self._start_brainwave_graph()
         elif page_index == 2:
             # start cursor control
+            self.setWindowTitle("Big Brain - Cursor Control")
             self._start_cursor_control()
         elif page_index==3:
             # save brainwave data
@@ -338,12 +341,12 @@ class MainAppWindow(QWidget):
 class CursorAppWindow(QWidget):
     def __init__(self, parent):
         super().__init__()
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowTitle("Big Brain - Cursor Control Menu")
-        self.pushButton = QPushButton("Quit Cursor Control", self)
+        self.pushButton = QPushButton("QUIT CURSOR CONTROL", self)
         self.pushButton.setFixedSize(QtCore.QSize(500, 50))
         # self.pushButton.setFlat(True)
-        self.pushButton.setStyleSheet("background-color: #D20705")
+        self.pushButton.setStyleSheet("font-weight: bold; color: white; background-color: #D20705")
         self.pushButton.clicked.connect(lambda: self.goback(parent))
         self.center() 
 
@@ -360,7 +363,7 @@ class CursorAppWindow(QWidget):
         width = size.width()
         x_center = width / 2;
         self_width = self.frameGeometry().size().width()
-        center = x_center - (self_width/3)
+        center = int(x_center - (self_width/3))
         self.move(center, 0)
         
 #?------------------------------------------------------------
