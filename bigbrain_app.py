@@ -11,6 +11,7 @@ import pandas as pd
 from datetime import date
 import time
 import webbrowser 
+import pyautogui
 
 class MainAppWindow(QWidget):
     def __init__(self):
@@ -122,8 +123,12 @@ class MainAppWindow(QWidget):
         
         #* Settings Page
         self.settingsWidget = QWidget()
+
+
         self.settingsTitle = QLabel(self.settingsWidget)
         self.settingsTitle.setText("Settings Page")
+        
+
         self.stackedWidget.addWidget(self.settingsWidget)
 
     #?------------------------------------------------------------
@@ -191,13 +196,14 @@ class MainAppWindow(QWidget):
         boardshim.prepare_session()
         boardshim.start_stream(450000, args.streamer_params)
 
-        # Start the brainwave graph streaming in the background
+        #* Start the brainwave data streaming in the background
         self._init_timeseries(self.graphWidget)
-        self.timer = QtCore.QTimer()
-        self.timer.setInterval(50)
-        self.timer.timeout.connect(self._update_graph)
-        self.timer.start()
+        self.graphTimer = QtCore.QTimer()
+        self.graphTimer.setInterval(50)
+        self.graphTimer.timeout.connect(self._update_brainwave_data)
+        self.graphTimer.start()
 
+        # Enable all the buttons that were previously disabled
         self._enable_general_buttons()
         self.connectBtn.setDisabled(True)
 
@@ -213,10 +219,10 @@ class MainAppWindow(QWidget):
         self.curves = list()
         for i in range(len(self.exg_channels)):
             p = graphWidget.addPlot(row=i,col=0)
-            p.showAxis('left', True)
-            p.setMenuEnabled('left', False)
-            p.showAxis('bottom', False)
-            p.setMenuEnabled('bottom', False)
+            # p.showAxis('left', True)
+            # p.setMenuEnabled('left', False)
+            # p.showAxis('bottom', False)
+            # p.setMenuEnabled('bottom', False)
             if i == 0:
                 p.setTitle('4-Channel EEG TimeSeries Plot')
             self.plots.append(p)
@@ -232,8 +238,8 @@ class MainAppWindow(QWidget):
                 curve = p.plot()
             self.curves.append(curve)
             
-    # Updates graph over time
-    def _update_graph(self):
+    # Updates brainwave data over time
+    def _update_brainwave_data(self):
         self.data = self.boardshim.get_current_board_data(self.num_points)
         for count, channel in enumerate(self.exg_channels):
             # plot timeseries
@@ -247,6 +253,16 @@ class MainAppWindow(QWidget):
             DataFilter.perform_bandstop(self.data[channel], self.sampling_rate, 60.0, 4.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
             self.curves[count].setData(self.data[channel].tolist())
+
+            # Calculate data for cursor control to use later
+            delta_band = round(self.data[0][0] * 100, 2)
+            theta_band = round(self.data[0][1] * 100, 2)
+            alpha_band = round(self.data[0][2] * 100, 2)
+            beta_band = round(self.data[0][3] * 100, 2)
+            gamma_band = round(self.data[0][4] * 100, 2)
+
+            self.jawClench = checkJawClenching(gamma_band)
+            self.eyeBlink = checkEyeBlinking(delta_band,gamma_band)
     
     #*---------------------
     #* Start Cursor Control Helper
@@ -260,6 +276,17 @@ class MainAppWindow(QWidget):
         self.hide()
 
         # Start cursor control
+        self.cursorTimer = QtCore.QTimer()
+        self.cursorTimer.setInterval(50)
+        self.cursorTimer.timeout.connect(self._update_cursor_movement)
+        #! Comment out line below to prevent cursor movement
+        #self.cursorTimer.start()
+
+    def _update_cursor_movement(self):
+        if self.jawClench:
+            testMoveCursorLeft()
+        elif self.eyeBlink:  
+            testMoveCursorRight()
 
     #*---------------------
     #* Start Save Helper
@@ -275,6 +302,17 @@ class MainAppWindow(QWidget):
     def openTutorial(self):
         webbrowser.open('https://tonyvillicana955.wixsite.com/bigbrain')
 
+    #*---------------------
+    #* Start Brainwave console stuff
+    #*---------------------
+
+
+#?------------------------------------------------------------
+#?
+#?       GUI App for when cursor control is active
+#?
+#?------------------------------------------------------------
+#       
 class CursorAppWindow(QWidget):
     def __init__(self, parent):
         super().__init__()
@@ -283,6 +321,9 @@ class CursorAppWindow(QWidget):
         self.pushButton.clicked.connect(lambda: self.goback(parent))  
 
     def goback(self, parent):
+        # stop the loop for checking cursor movement
+        parent.cursorTimer.stop()
+        # return to main app
         parent.show()
         self.hide()
         
@@ -333,55 +374,25 @@ def init_boardshim_item():
     }
 
 #*---------------------
-#* Start Brainwave console stuff
+#* Start Cursor Connection stuff
 #*---------------------
-# def printBandData(self):
-#     print("\n\n\n\n\n\n\n\n\n")
-#     refresh_rate=0.5 #in seconds
-#     for i in range(1000):
-#         avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
-#         self.print_bands(avgBandPowers)
-#         time.sleep(refresh_rate)
+def checkJawClenching(gamma_band):
+    if gamma_band > 40:
+        return True
+    else:
+        return False
+def checkEyeBlinking(delta_band, gamma_band):
+    if delta_band > 50 and gamma_band < 2:
+        return True
+    else:
+        return False
+def testMoveCursorLeft():
+    # moves in 1 direction only
+    pyautogui.move(-100, 0, duration=0.5)
 
-# def print_bands(self, avgBandPowers):
-#     delta_band = round(avgBandPowers[0][0] * 100, 2)
-#     theta_band = round(avgBandPowers[0][1] * 100, 2)
-#     alpha_band = round(avgBandPowers[0][2] * 100, 2)
-#     beta_band = round(avgBandPowers[0][3] * 100, 2)
-#     gamma_band = round(avgBandPowers[0][4] * 100, 2)
-
-#     jawClench = False
-#     jawClench = self.checkJawClenching(gamma_band)
-#     if (jawClench):
-#         goback = "\033[F" * 12
-#     else:
-#         goback = "\033[F" * 10
-
-#     goback = "\033[F" * 10
-#     result = f"""{goback}
-#     Bands
-#     ----------
-#     Delta[1-4]: {delta_band}%     
-#     Theta[4-8]: {theta_band}%     
-#     Alpha[8-13]: {alpha_band}%     
-#     Beta[13-30]: {beta_band}%     
-#     Gamma[30-45]: {gamma_band}%     
-
-#     """
-#     if jawClench:
-#         result+="*Jaw is being clenched*"
-#     else:
-#         result+="                       "
-
-#     print(result)
-#     sys.stdout.flush()
-
-# def checkJawClenching(self, gamma_band):
-#     if gamma_band > 40:
-#         return True
-#     else:
-#         return False
-
+def testMoveCursorRight():
+    # moves in 1 direction only
+    pyautogui.move(100, 0, duration=0.5)
 
 #?------------------------------------------------------------
 #?
