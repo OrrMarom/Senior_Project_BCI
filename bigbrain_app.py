@@ -318,7 +318,8 @@ class CursorAppWindow(QWidget):
         super().__init__()
         self.setWindowTitle("Big Brain - Cursor Control Menu")
         self.pushButton = QPushButton("back", self)
-        self.pushButton.clicked.connect(lambda: self.goback(parent))  
+        self.pushButton.clicked.connect(lambda: self.goback(parent))
+        self.center() 
 
     def goback(self, parent):
         # stop the loop for checking cursor movement
@@ -326,6 +327,15 @@ class CursorAppWindow(QWidget):
         # return to main app
         parent.show()
         self.hide()
+
+    def center(self):
+        screen = QApplication.primaryScreen()
+        size = screen.size()
+        width = size.width()
+        x_center = width / 2;
+        self_width = self.frameGeometry().size().width()
+        center = x_center - (self_width/8)
+        self.move(center, 0)
         
 #?------------------------------------------------------------
 #?

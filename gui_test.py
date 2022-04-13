@@ -1,5 +1,8 @@
+from re import S
 from sqlite3 import Cursor
 import sys
+from tkinter import CENTER
+from turtle import screensize
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtWidgets import *
@@ -17,13 +20,22 @@ class Window2(QWidget):                           # <===
         super().__init__()
         self.setWindowTitle("Window22222")
         self.pushButton = QPushButton("back", self)
-        self.pushButton.clicked.connect(lambda: self.goback(parent))  
+        self.pushButton.clicked.connect(lambda: self.goback(parent))
+        self.center()
 
     def goback(self, parent):
         #parent.setVisible(True)
         parent.show()
         self.hide()
-        
+
+    def center(self):
+        screen = QApplication.primaryScreen()
+        size = screen.size()
+        width = size.width()
+        x_center = width / 2;
+        self_width = self.frameGeometry().size().width()
+        center = x_center - (self_width/8)
+        self.move(center, 0)
 
 class Window(QWidget):
     def __init__(self):
