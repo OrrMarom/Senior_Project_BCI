@@ -127,8 +127,8 @@ class MainAppWindow(QWidget):
         #* Settings Page
         self.settingsWidget = QWidget()
         settingsLayout = QVBoxLayout()
-        sliderLayout = QVBoxLayout()
-        inputLayout = QHBoxLayout()
+        sliderLayout = QHBoxLayout()
+        inputLayout = QVBoxLayout()
         settingsLayout.addLayout(sliderLayout)
         settingsLayout.addLayout(inputLayout)
 
@@ -151,7 +151,7 @@ class MainAppWindow(QWidget):
         self.sld.setTickInterval(1)
         sliderLayout.addWidget(self.sld)
 
-        comPortLayout = QVBoxLayout()
+        comPortLayout = QHBoxLayout()
         comPort_label = QLabel("Com Port")
         comPortLayout.addWidget(comPort_label)
         comPort = QLineEdit()
@@ -159,8 +159,16 @@ class MainAppWindow(QWidget):
         comPort.setValidator(intCheck)
         comPort.textChanged.connect(self.com_port_change)
         comPortLayout.addWidget(comPort)
-
         inputLayout.addLayout(comPortLayout)
+
+        boardLayout = QHBoxLayout()
+        board_label = QLabel("Board")
+        boardLayout.addWidget(board_label)
+        board_select = QComboBox()
+        board_select.addItem("Ganglion")
+        board_select.addItem("Cyton")
+        boardLayout.addWidget(board_select)
+        inputLayout.addLayout(boardLayout)
 
         self.sld.valueChanged.connect(self.sld_value_change)
 
