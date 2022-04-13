@@ -13,6 +13,7 @@ from datetime import date
 import time
 import webbrowser 
 import pyautogui
+from PyQt5.QtCore import Qt
 
 class MainAppWindow(QWidget):
     def __init__(self):
@@ -124,12 +125,32 @@ class MainAppWindow(QWidget):
         
         #* Settings Page
         self.settingsWidget = QWidget()
-
-
-        self.settingsTitle = QLabel(self.settingsWidget)
-        self.settingsTitle.setText("Settings Page")
         
+        self.sld = QSlider(Qt.Horizontal, self)
+        self.sld.setFocusPolicy(Qt.NoFocus)
+        self.sld.setRange(0, 100)
+        self.sld.setPageStep(5)
 
+        self.sld_label = QLabel("0", self)
+        self.sld_label.setStyleSheet('QLabel { background: #007AA5; border-radius: 3px;}')
+        self.sld_label.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
+        self.sld_label.setMinimumWidth(80)
+
+        if self.sld.valueChanged:
+            self.sld_label.setText(str(self.sld.value()))
+
+        self.hbox = QHBoxLayout()
+        self.hbox.addStretch()
+        self.hbox.addWidget(self.sld)
+        self.hbox.addSpacing(15)
+        self.hbox.addWidget(self.sld_label)
+        self.hbox.addStretch()
+
+        # self.setGeometry(300, 300, 350, 250)
+        # self.setWindowTitle('Speed Adjuster')
+        # self.show()
+
+        self.settingsWidget.setLayout(self.hbox)
         self.stackedWidget.addWidget(self.settingsWidget)
 
     #?------------------------------------------------------------
