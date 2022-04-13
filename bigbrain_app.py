@@ -126,33 +126,42 @@ class MainAppWindow(QWidget):
         
         #* Settings Page
         self.settingsWidget = QWidget()
-        
-        self.sld = QSlider(Qt.Horizontal, self)
-        self.sld.setFocusPolicy(Qt.NoFocus)
-        self.sld.setRange(0, 100)
-        self.sld.setPageStep(5)
+        settingsLayout = QVBoxLayout()
+        sliderLayout = QVBoxLayout()
+        inputLayout = QHBoxLayout()
+        settingsLayout.addLayout(sliderLayout)
+        settingsLayout.addLayout(inputLayout)
 
-        self.sld_label = QLabel("0", self)
-        self.sld_label.setStyleSheet('QLabel { background: #007AA5; border-radius: 3px;}')
+        self.sld_title = QLabel("Adjust Cursor Speed")
+        self.sld_title.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
+        sliderLayout.addWidget(self.sld_title)
+
+        self.sld_label = QLabel("1")
+        self.sld_label.setStyleSheet("font-weight: bold; color: white; background: #007AA5; border-radius: 3px;")
         self.sld_label.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
-        self.sld_label.setMinimumWidth(80)
+        self.sld_label.setGeometry(300,300,350,250)
+        sliderLayout.addWidget(self.sld_label)
 
-        if self.sld.valueChanged:
-            self.sld_label.setText(str(self.sld.value()))
+        self.sld = QSlider(Qt.Horizontal)
+        self.sld.setMinimum(1)
+        self.sld.setMaximum(100)
+        self.sld.setMinimumWidth(80)
+        self.sld.setValue(50)
+        self.sld.setTickPosition(QSlider.TicksBelow)
+        self.sld.setTickInterval(1)
+        sliderLayout.addWidget(self.sld)
 
-        self.hbox = QHBoxLayout()
-        self.hbox.addStretch()
-        self.hbox.addWidget(self.sld)
-        self.hbox.addSpacing(15)
-        self.hbox.addWidget(self.sld_label)
-        self.hbox.addStretch()
+        self.inputWidget = QWidget()
+        inputLayout.addWidget(self.inputWidget)
 
-        # self.setGeometry(300, 300, 350, 250)
-        # self.setWindowTitle('Speed Adjuster')
-        # self.show()
+        self.sld.valueChanged.connect(self.valuechange)
 
-        self.settingsWidget.setLayout(self.hbox)
+        self.settingsWidget.setLayout(settingsLayout)
         self.stackedWidget.addWidget(self.settingsWidget)
+
+    def valuechange(self):
+        size = self.sld.value()
+        self.sld_label.setText(str(size))
 
     #?------------------------------------------------------------
     #?
