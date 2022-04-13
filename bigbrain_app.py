@@ -1,4 +1,3 @@
-from audioop import avg
 import sys
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
@@ -11,108 +10,204 @@ import numpy as np
 import pandas as pd
 from datetime import date
 import time
+import webbrowser 
 
-class Window(QWidget):
-    def __init__(self, board_shim):
+class MainAppWindow(QWidget):
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle("Big Brain")
-        self.userName = 'johnsmith'
+        self.setWindowTitle("Big Brain - Main Menu")
+        self.userName = 'Big Brain'
         today = date.today()
         self.date = today.strftime("%b-%d-%Y")
 
-        # layouts
+        #?------------------------------------------------------------
+        #?
+        #?                 Main GUI Window
+        #?
+        #?------------------------------------------------------------
+        #* init main layout
         self.mainLayout = QHBoxLayout() # layout for the entire app
-        self.stackedLayout = QVBoxLayout() # layout for the stacked widget on the right
-        self.menuLayout = QVBoxLayout() # layout for the menu widget on the left
-
-        # widgets going into the stackedLayout widget
-        self.graphWidget = pg.GraphicsLayoutWidget() # brainwave graph
-        self.boardshimWidget = QWidget() # headset connection
-        self.cursorWidget = QWidget() # control cursor
-        self.saveWidget = QWidget() # save data
-        self.tutorialWidget = QWidget() # tutorial
-        self.settingsWidget = QWidget() # settings
-
-        # stacked widget & adding widgets to it
-        self.stackedWidget = QStackedWidget()
-        self.stackedWidget.addWidget(self.graphWidget)
-        self.stackedWidget.addWidget(self.boardshimWidget)
-        self.stackedWidget.addWidget(self.cursorWidget)
-        self.stackedWidget.addWidget(self.saveWidget)
-        self.stackedWidget.addWidget(self.tutorialWidget)
-        self.stackedWidget.addWidget(self.settingsWidget)
-
-        # buttons for menu widget (note: index is based on the order above)
-        self.button1 = QPushButton("Brainwave Visualizer") # index 0
-        self.button2 = QPushButton("*Connect Headset*") # index 1
-        self.button3 = QPushButton("*Control Cursor*") # index 2
-        self.button4 = QPushButton("Save Data") # index 3
-        self.button5 = QPushButton("*Tutorial*") # index 4
-        self.button6 = QPushButton("*Settings*") # index 5
-
-        # Add buttons to the menu layout
-        self.menuLayout.addWidget(self.button1)
-        self.menuLayout.addWidget(self.button2)
-        self.menuLayout.addWidget(self.button3)
-        self.menuLayout.addWidget(self.button4)
-        self.menuLayout.addWidget(self.button5)
-        self.menuLayout.addWidget(self.button6)
-
-        # creating signals for buttons
-        self.button1.clicked.connect(lambda: self.buttonWork(1))
-        self.button2.clicked.connect(lambda: self.buttonWork(2))
-        self.button3.clicked.connect(lambda: self.buttonWork(3))
-        self.button4.clicked.connect(lambda: self.buttonWork(4))
-        self.button5.clicked.connect(lambda: self.buttonWork(5))
-        self.button6.clicked.connect(lambda: self.buttonWork(6))
-
-        # Brainwave Page is the default index position
-
-        # Connection Page (boardshim)
-        self.connectionTitle = QLabel(self.boardshimWidget)
-        self.connectionTitle.setText("Boardshim Connection Page")
-
-        # Control Cursor Page
-        self.cursorControlTitle = QLabel(self.cursorWidget)
-        self.cursorControlTitle.setText("Control Cursor Page")
-
-        # Save Data Page
-        self.saveDataTitle = QLabel(self.saveWidget)
-        self.saveDataTitle.setText("Saved Data Page")
-
-        # Tutorial Page
-        self.tutorialTitle = QLabel(self.tutorialWidget)
-        self.tutorialTitle.setText("Tutorial Page")
-
-        # Settings Page
-        self.settingsTitle = QLabel(self.settingsWidget)
-        self.settingsTitle.setText("Settings Page")
-
-        # add widgets to the stackedwidget layout
-        self.stackedLayout.addWidget(self.stackedWidget)
+        #* init left side of main layout (buttons)
+        self.menuLayout = QVBoxLayout()
+        #* init right side of main layout 
+        self.stackedLayout = QVBoxLayout()
 
         # put sub layouts in main window
         self.mainLayout.addLayout(self.menuLayout)
         self.mainLayout.addLayout(self.stackedLayout)
-
         # Set the layout on the application's window
         self.setLayout(self.mainLayout)
-        print(self.children())
+        #print(self.children())
+
+        #?------------------------------------------------------------
+        #?
+        #?                 Left GUI Layouts and Widgets
+        #?
+        #?------------------------------------------------------------
+        
+        # Create key:value (code name:display name) pair for each button. displays in order of obj
+        self.button_name_obj = {
+            "connectBtn":"Connect Headset",
+            "brainwaveBtn":"Brainwave Visualizer",
+            "cursorBtn":"*Control Cursor*",
+            "saveBtn":"Save Data",
+            "tutorialBtn":"*Tutorial*",
+            "settingsBtn":"*Settings*"
+        }
+        page_counter = 0
+        for btn_name in self.button_name_obj:
+            # loop through list of names and create QPushButton for each, then assign it to self
+            temp_btn = QPushButton(self.button_name_obj[btn_name])
+            temp_btn.clicked.connect((lambda d: lambda:self._button_router(d))(page_counter))
+            page_counter+=1
+            # add button variables and widgets to self
+            self.__dict__[btn_name] = temp_btn
+            self.menuLayout.addWidget(temp_btn)
+
+        # Start application with most buttons disabled until the headset is connected
+        self._disable_general_buttons()
+
+
+        #?------------------------------------------------------------
+        #?
+        #?                 Right GUI Layouts and Widgets
+        #?
+        #?------------------------------------------------------------
+            
+        self.stackedWidget = QStackedWidget()
+        # add widgets to the stackedwidget layout
+        self.stackedLayout.addWidget(self.stackedWidget)
+
+        #* Connection Page (boardshim)
+        self.connectionWidget = QWidget() 
+
+        connectionLayout = QHBoxLayout()
+        testlayout1 = QHBoxLayout() 
+        testlayout2 = QHBoxLayout()
+        connectionLayout.addLayout(testlayout1,2)
+        connectionLayout.addLayout(testlayout2,1)
+
+        testText1= QLabel("beep boop")
+        testText2= QLabel("bop beep")
+        testlayout1.addWidget(testText1,1)
+        testlayout2.addWidget(testText2,2)
+        self.connectionWidget.setLayout(connectionLayout)
+        # self.connectionTitle = QLabel(self.connectionWidget)
+        # self.connectionTitle.setText("Connection Page")
+        self.stackedWidget.addWidget(self.connectionWidget)
+        
+        #* graph?
+        self.graphWidget = pg.GraphicsLayoutWidget() # brainwave graph
+        self.cursorControlTitle = QLabel(self.graphWidget)
+        self.cursorControlTitle.setText("Brainwave Data")
+        self.stackedWidget.addWidget(self.graphWidget)
+
+        #* Control Cursor Page
+        self.cursorWidget = QWidget() 
+        self.cursorControlTitle = QLabel(self.cursorWidget)
+        self.cursorControlTitle.setText("Control Cursor Page")
+        self.stackedWidget.addWidget(self.cursorWidget)
+        
+        #* Save Data Page
+        self.saveWidget = QWidget() 
+        self.saveDataTitle = QLabel(self.saveWidget)
+        self.saveDataTitle.setText("Saved Data Page")
+        self.stackedWidget.addWidget(self.saveWidget)
+        
+        #* Tutorial Page
+        self.tutorialWidget = QWidget()
+        self.tutorialTitle = QLabel(self.tutorialWidget)
+        self.tutorialTitle.setText("Tutorial Page")
+        self.stackedWidget.addWidget(self.tutorialWidget)
+        
+        #* Settings Page
+        self.settingsWidget = QWidget()
+        self.settingsTitle = QLabel(self.settingsWidget)
+        self.settingsTitle.setText("Settings Page")
+        self.stackedWidget.addWidget(self.settingsWidget)
+
+    #?------------------------------------------------------------
+    #?
+    #?                  Start GUI Helper Functions
+    #?
+    #?------------------------------------------------------------
+    
+    #*---------------------
+    #* General Helpers
+    #*---------------------
+    # Controls buttons actions after it's pressed
+    def _button_router(self, page_index):
+        """ 
+        Switch to page based off the passed page_index. Current page index are:
+            0 = connectBtn
+            1 = brainwaveBtn
+            2 = cursorBtn
+            3 = saveBtn
+            4 = tutorialBtn
+            5 = settingsBtn
+        """
+        print(f"Switching to page {page_index}")
+        self.stackedWidget.setCurrentIndex(page_index)
+        
+        # After page is switched, call specific function for each button if it needs one
+        if page_index == 0: 
+            # connect to headset
+            self._connect_to_headset(1)
+        elif page_index == 1:
+            self._start_brainwave_graph()
+        elif page_index == 2:
+            # start cursor control
+            self._start_cursor_control()
+        elif page_index==3:
+            # save brainwave data
+            self.saveData()
+        elif page_index==4:
+            self.openTutorial()
+
+    def _disable_general_buttons(self):
+        for btn_name in self.button_name_obj:
+            if btn_name not in ["connectBtn","tutorialBtn"]: self.__dict__[btn_name].setDisabled(True)
+    def _enable_general_buttons(self):
+        for btn_name in self.button_name_obj:
+            if btn_name not in ["connectBtn","tutorialBtn"]: self.__dict__[btn_name].setDisabled(False)
+    #*---------------------
+    #* Start Headset Connection Helper
+    #*---------------------
+    def _connect_to_headset(self,board_id):
+        print("Connecting to headset")
+        # Start boardshim and get all required data
+        boardshim_init_results = init_boardshim_item()
+        boardshim = boardshim_init_results["boardshim"]
+        args = boardshim_init_results["args"]
 
         # initiating time series and fields for ts
-        self.board_id = board_shim.get_board_id()
-        self.board_shim = board_shim
+        self.board_id = board_id #board_shim.get_board_id()
+        self.boardshim = boardshim
         self.exg_channels = BoardShim.get_exg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
         self.window_size = 4
         self.num_points = self.window_size * self.sampling_rate
+        
+        boardshim.prepare_session()
+        boardshim.start_stream(450000, args.streamer_params)
 
+        # Start the brainwave graph streaming in the background
         self._init_timeseries(self.graphWidget)
         self.timer = QtCore.QTimer()
         self.timer.setInterval(50)
-        self.timer.timeout.connect(self.update)
+        self.timer.timeout.connect(self._update_graph)
         self.timer.start()
 
+        self._enable_general_buttons()
+        self.connectBtn.setDisabled(True)
+
+    #*---------------------
+    #* Start Graph Helper
+    #*---------------------
+    def _start_brainwave_graph(self):
+        print('beep') # do nothing for now
+
+    # Create Graph for the Graph page
     def _init_timeseries(self, graphWidget):
         self.plots = list()
         self.curves = list()
@@ -125,20 +220,21 @@ class Window(QWidget):
             if i == 0:
                 p.setTitle('4-Channel EEG TimeSeries Plot')
             self.plots.append(p)
-            if i is 0:
+            if i == 0:
                 curve = p.plot(pen = {"color":"#2FAED0"})
-            elif i is 1:
+            elif i == 1:
                 curve = p.plot(pen = {"color":"#A12FD0"})
-            elif i is 2:
+            elif i == 2:
                 curve = p.plot(pen = {"color":"#D0512F"})
-            elif i is 3:
+            elif i == 3:
                 curve = p.plot(pen = {"color":"#5ED02F"})
             else:
                 curve = p.plot()
             self.curves.append(curve)
-
-    def update(self):
-        self.data = self.board_shim.get_current_board_data(self.num_points)
+            
+    # Updates graph over time
+    def _update_graph(self):
+        self.data = self.boardshim.get_current_board_data(self.num_points)
         for count, channel in enumerate(self.exg_channels):
             # plot timeseries
             DataFilter.detrend(self.data[channel], DetrendOperations.CONSTANT.value)
@@ -151,78 +247,56 @@ class Window(QWidget):
             DataFilter.perform_bandstop(self.data[channel], self.sampling_rate, 60.0, 4.0, 2,
                                         FilterTypes.BUTTERWORTH.value, 0)
             self.curves[count].setData(self.data[channel].tolist())
+    
+    #*---------------------
+    #* Start Cursor Control Helper
+    #*---------------------
+    def _start_cursor_control(self):
+        print("Starting Cursor Control")
+        
+        # Switch to smaller cursor app
+        self.cursorWindow = CursorAppWindow(self)
+        self.cursorWindow.show()
+        self.hide()
 
+        # Start cursor control
+
+    #*---------------------
+    #* Start Save Helper
+    #*---------------------
     def saveData(self):
         dataHeader = "{}{}".format(self.userName, self.date)
         DataFilter.write_file(self.data, '{}'.format(dataHeader), 'a') # 'a' appends to file, 'w' for overwrite
+        print("saved local file")
 
-    def buttonWork(self, x): # x refers to the button number, which is index + 1 for currentindex on a stacked widget
-        if x is 1:
-            self.stackedWidget.setCurrentIndex(0)
-        elif x is 2:
-            self.stackedWidget.setCurrentIndex(1)
-        elif x is 3:
-            self.stackedWidget.setCurrentIndex(2)
-            # self.printBandData() # not working, prints once and won't update again
-        elif x is 4:
-            self.stackedWidget.setCurrentIndex(3)
-            self.saveData()
-        elif x is 5:
-            self.stackedWidget.setCurrentIndex(4)
-        elif x is 6:
-            self.stackedWidget.setCurrentIndex(5)
+    #*---------------------
+    #* Start Tutorial Helper
+    #*---------------------
+    def openTutorial(self):
+        webbrowser.open('https://tonyvillicana955.wixsite.com/bigbrain')
 
-    def printBandData(self):
-        print("\n\n\n\n\n\n\n\n\n")
-        refresh_rate=0.5 #in seconds
-        for i in range(1000):
-            avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
-            self.print_bands(avgBandPowers)
-            time.sleep(refresh_rate)
+class CursorAppWindow(QWidget):
+    def __init__(self, parent):
+        super().__init__()
+        self.setWindowTitle("Big Brain - Cursor Control Menu")
+        self.pushButton = QPushButton("back", self)
+        self.pushButton.clicked.connect(lambda: self.goback(parent))  
 
-    def print_bands(self, avgBandPowers):
-        delta_band = round(avgBandPowers[0][0] * 100, 2)
-        theta_band = round(avgBandPowers[0][1] * 100, 2)
-        alpha_band = round(avgBandPowers[0][2] * 100, 2)
-        beta_band = round(avgBandPowers[0][3] * 100, 2)
-        gamma_band = round(avgBandPowers[0][4] * 100, 2)
+    def goback(self, parent):
+        parent.show()
+        self.hide()
+        
+#?------------------------------------------------------------
+#?
+#?                  Start General Helper Functions
+#?
+#?------------------------------------------------------------
 
-        jawClench = False
-        jawClench = self.checkJawClenching(gamma_band)
-        if (jawClench):
-            goback = "\033[F" * 12
-        else:
-            goback = "\033[F" * 10
-
-        goback = "\033[F" * 10
-        result = f"""{goback}
-        Bands
-        ----------
-        Delta[1-4]: {delta_band}%     
-        Theta[4-8]: {theta_band}%     
-        Alpha[8-13]: {alpha_band}%     
-        Beta[13-30]: {beta_band}%     
-        Gamma[30-45]: {gamma_band}%     
-
-        """
-        if jawClench:
-            result+="*Jaw is being clenched*"
-        else:
-            result+="                       "
-
-        print(result)
-        sys.stdout.flush()
-
-    def checkJawClenching(self, gamma_band):
-        if gamma_band > 40:
-            return True
-        else:
-            return False
-
-if __name__ == "__main__":
-    BoardShim.enable_dev_board_logger()
-    logging.basicConfig(level=logging.DEBUG)
-
+        
+#*---------------------
+#* Start Boardshim connection stuff
+#*---------------------
+def init_boardshim_item():
     parser = argparse.ArgumentParser()
     # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False,
@@ -251,20 +325,84 @@ if __name__ == "__main__":
     params.ip_protocol = args.ip_protocol
     params.timeout = args.timeout
     params.file = args.file
+    
+    return {
+        "boardshim":BoardShim(args.board_id, params),
+        "args":args,
+        "params":params
+    }
+
+#*---------------------
+#* Start Brainwave console stuff
+#*---------------------
+# def printBandData(self):
+#     print("\n\n\n\n\n\n\n\n\n")
+#     refresh_rate=0.5 #in seconds
+#     for i in range(1000):
+#         avgBandPowers = DataFilter.get_avg_band_powers(self.data, self.exg_channels, self.sampling_rate, apply_filter=True)
+#         self.print_bands(avgBandPowers)
+#         time.sleep(refresh_rate)
+
+# def print_bands(self, avgBandPowers):
+#     delta_band = round(avgBandPowers[0][0] * 100, 2)
+#     theta_band = round(avgBandPowers[0][1] * 100, 2)
+#     alpha_band = round(avgBandPowers[0][2] * 100, 2)
+#     beta_band = round(avgBandPowers[0][3] * 100, 2)
+#     gamma_band = round(avgBandPowers[0][4] * 100, 2)
+
+#     jawClench = False
+#     jawClench = self.checkJawClenching(gamma_band)
+#     if (jawClench):
+#         goback = "\033[F" * 12
+#     else:
+#         goback = "\033[F" * 10
+
+#     goback = "\033[F" * 10
+#     result = f"""{goback}
+#     Bands
+#     ----------
+#     Delta[1-4]: {delta_band}%     
+#     Theta[4-8]: {theta_band}%     
+#     Alpha[8-13]: {alpha_band}%     
+#     Beta[13-30]: {beta_band}%     
+#     Gamma[30-45]: {gamma_band}%     
+
+#     """
+#     if jawClench:
+#         result+="*Jaw is being clenched*"
+#     else:
+#         result+="                       "
+
+#     print(result)
+#     sys.stdout.flush()
+
+# def checkJawClenching(self, gamma_band):
+#     if gamma_band > 40:
+#         return True
+#     else:
+#         return False
+
+
+#?------------------------------------------------------------
+#?
+#?                  Main Function
+#?
+#?------------------------------------------------------------
+if __name__ == "__main__":
+    # Start the PyQt window
+    BoardShim.enable_dev_board_logger()
+    logging.basicConfig(level=logging.DEBUG)
 
     try:
         app = QApplication(sys.argv)
-        board_shim = BoardShim(args.board_id, params)
-        board_shim.prepare_session()
-        board_shim.start_stream(450000, args.streamer_params)
-
-        window = Window(board_shim)
+        window = MainAppWindow()
+        
         window.show()
         sys.exit(app.exec_())
     except BaseException:
         logging.warning('Exception', exc_info=True)
     finally:
         logging.info('End')
-        if board_shim.is_prepared():
-            logging.info('Releasing session')
-            board_shim.release_session()
+        # if board_shim.is_prepared():
+        #     logging.info('Releasing session')
+        #     board_shim.release_session()
