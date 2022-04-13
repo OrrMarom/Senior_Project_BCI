@@ -355,7 +355,7 @@ class CursorAppWindow(QWidget):
         self.pushButton = QPushButton("QUIT CURSOR CONTROL", self)
         self.pushButton.setFixedSize(QtCore.QSize(500, 50))
         # self.pushButton.setFlat(True)
-        self.pushButton.setStyleSheet("font-weight: bold; color: white; background-color: #D20705")
+        self.pushButton.setStyleSheet("font-weight: bold; color: white; background-color: #D20705; ")
         self.pushButton.clicked.connect(lambda: self.goback(parent))
         self.center() 
 
@@ -371,8 +371,8 @@ class CursorAppWindow(QWidget):
         size = screen.size()
         width = size.width()
         x_center = width / 2;
-        self_width = self.frameGeometry().size().width()
-        center = int(x_center - (self_width/3))
+        self_width = self.pushButton.frameGeometry().size().width()
+        center = int(x_center - (self_width/2))
         self.move(center, 0)
         
 #?------------------------------------------------------------
