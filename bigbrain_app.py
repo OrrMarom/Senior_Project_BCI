@@ -13,7 +13,7 @@ from datetime import date
 import time
 import webbrowser 
 import pyautogui
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIntValidator
 
 class MainAppWindow(QWidget):
     def __init__(self):
@@ -151,15 +151,27 @@ class MainAppWindow(QWidget):
         self.sld.setTickInterval(1)
         sliderLayout.addWidget(self.sld)
 
-        self.inputWidget = QWidget()
-        inputLayout.addWidget(self.inputWidget)
+        comPortLayout = QVBoxLayout()
+        comPort_label = QLabel("Com Port")
+        comPortLayout.addWidget(comPort_label)
+        comPort = QLineEdit()
+        intCheck = QIntValidator()
+        comPort.setValidator(intCheck)
+        comPort.textChanged.connect(self.com_port_change)
+        comPortLayout.addWidget(comPort)
 
-        self.sld.valueChanged.connect(self.valuechange)
+        inputLayout.addLayout(comPortLayout)
+
+        self.sld.valueChanged.connect(self.sld_value_change)
 
         self.settingsWidget.setLayout(settingsLayout)
         self.stackedWidget.addWidget(self.settingsWidget)
 
-    def valuechange(self):
+    def com_port_change(self, text):
+        com_port = int(text)
+        print(com_port)
+
+    def sld_value_change(self):
         size = self.sld.value()
         self.sld_label.setText(str(size))
 
@@ -355,7 +367,7 @@ class CursorAppWindow(QWidget):
         self.pushButton = QPushButton("QUIT CURSOR CONTROL", self)
         self.pushButton.setFixedSize(QtCore.QSize(500, 50))
         # self.pushButton.setFlat(True)
-        self.pushButton.setStyleSheet("font-weight: bold; color: white; background-color: #D20705; ")
+        self.pushButton.setStyleSheet("font-weight: bold; color: white; background-color: #D20705;")
         self.pushButton.clicked.connect(lambda: self.goback(parent))
         self.center() 
 
