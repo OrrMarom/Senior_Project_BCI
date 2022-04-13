@@ -6,6 +6,7 @@ from turtle import screensize
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, WindowFunctions, DetrendOperations
 import argparse
@@ -18,8 +19,10 @@ import time
 class Window2(QWidget):                           # <===
     def __init__(self, parent):
         super().__init__()
+        self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowTitle("Window22222")
-        self.pushButton = QPushButton("back", self)
+        self.pushButton = QPushButton("QUIT CURSOR CONTROL", self)
+        self.pushButton.setFixedSize(QtCore.QSize(500, 100))
         self.pushButton.clicked.connect(lambda: self.goback(parent))
         self.center()
 
@@ -34,7 +37,7 @@ class Window2(QWidget):                           # <===
         width = size.width()
         x_center = width / 2;
         self_width = self.frameGeometry().size().width()
-        center = x_center - (self_width/8)
+        center = x_center - (self_width/3)
         self.move(center, 0)
 
 class Window(QWidget):

@@ -1,6 +1,7 @@
 import sys
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, WindowFunctions, DetrendOperations
@@ -316,8 +317,12 @@ class MainAppWindow(QWidget):
 class CursorAppWindow(QWidget):
     def __init__(self, parent):
         super().__init__()
+        self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowTitle("Big Brain - Cursor Control Menu")
-        self.pushButton = QPushButton("back", self)
+        self.pushButton = QPushButton("Quit Cursor Control", self)
+        self.pushButton.setFixedSize(QtCore.QSize(500, 50))
+        # self.pushButton.setFlat(True)
+        self.pushButton.setStyleSheet("background-color: #D20705")
         self.pushButton.clicked.connect(lambda: self.goback(parent))
         self.center() 
 
@@ -334,7 +339,7 @@ class CursorAppWindow(QWidget):
         width = size.width()
         x_center = width / 2;
         self_width = self.frameGeometry().size().width()
-        center = x_center - (self_width/8)
+        center = x_center - (self_width/3)
         self.move(center, 0)
         
 #?------------------------------------------------------------
