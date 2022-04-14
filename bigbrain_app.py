@@ -149,6 +149,7 @@ class MainAppWindow(QWidget):
         self.sld.setValue(50)
         self.sld.setTickPosition(QSlider.TicksBelow)
         self.sld.setTickInterval(1)
+        self.sld.valueChanged.connect(self.sld_value_change)
         sliderLayout.addWidget(self.sld)
 
         comPortLayout = QHBoxLayout()
@@ -170,7 +171,16 @@ class MainAppWindow(QWidget):
         boardLayout.addWidget(board_select)
         inputLayout.addLayout(boardLayout)
 
-        self.sld.valueChanged.connect(self.sld_value_change)
+        ganglionLayout = QHBoxLayout()
+        self.ganglionCheckBox1 = QCheckBox("Channel 1", self)
+        ganglionCheckBox2 = QCheckBox("Channel 2")
+        ganglionCheckBox3 = QCheckBox("Channel 3")
+        ganglionCheckBox4 = QCheckBox("Channel 4")
+        ganglionLayout.addWidget(self.ganglionCheckBox1)
+        ganglionLayout.addWidget(ganglionCheckBox2)
+        ganglionLayout.addWidget(ganglionCheckBox3)
+        ganglionLayout.addWidget(ganglionCheckBox4)
+        inputLayout.addLayout(ganglionLayout)
 
         self.settingsWidget.setLayout(settingsLayout)
         self.stackedWidget.addWidget(self.settingsWidget)
