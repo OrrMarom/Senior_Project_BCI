@@ -126,72 +126,8 @@ class MainAppWindow(QWidget):
         
         #* Settings Page
         self.settingsWidget = QWidget()
-        settingsLayout = QVBoxLayout()
-        sliderLayout = QHBoxLayout()
-        inputLayout = QVBoxLayout()
-        settingsLayout.addLayout(sliderLayout)
-        settingsLayout.addLayout(inputLayout)
-
-        self.sld_title = QLabel("Adjust Cursor Speed")
-        self.sld_title.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
-        sliderLayout.addWidget(self.sld_title)
-
-        self.sld_label = QLabel("1")
-        self.sld_label.setStyleSheet("font-weight: bold; color: white; background: #007AA5; border-radius: 3px;")
-        self.sld_label.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
-        self.sld_label.setGeometry(300,300,350,250)
-        sliderLayout.addWidget(self.sld_label)
-
-        self.sld = QSlider(Qt.Horizontal)
-        self.sld.setMinimum(1)
-        self.sld.setMaximum(100)
-        self.sld.setMinimumWidth(80)
-        self.sld.setValue(50)
-        self.sld.setTickPosition(QSlider.TicksBelow)
-        self.sld.setTickInterval(1)
-        self.sld.valueChanged.connect(self.sld_value_change)
-        sliderLayout.addWidget(self.sld)
-
-        comPortLayout = QHBoxLayout()
-        comPort_label = QLabel("Com Port")
-        comPortLayout.addWidget(comPort_label)
-        comPort = QLineEdit()
-        intCheck = QIntValidator()
-        comPort.setValidator(intCheck)
-        comPort.textChanged.connect(self.com_port_change)
-        comPortLayout.addWidget(comPort)
-        inputLayout.addLayout(comPortLayout)
-
-        boardLayout = QHBoxLayout()
-        board_label = QLabel("Board")
-        boardLayout.addWidget(board_label)
-        board_select = QComboBox()
-        board_select.addItem("Ganglion")
-        board_select.addItem("Cyton")
-        boardLayout.addWidget(board_select)
-        inputLayout.addLayout(boardLayout)
-
-        ganglionLayout = QHBoxLayout()
-        self.ganglionCheckBox1 = QCheckBox("Channel 1", self)
-        ganglionCheckBox2 = QCheckBox("Channel 2")
-        ganglionCheckBox3 = QCheckBox("Channel 3")
-        ganglionCheckBox4 = QCheckBox("Channel 4")
-        ganglionLayout.addWidget(self.ganglionCheckBox1)
-        ganglionLayout.addWidget(ganglionCheckBox2)
-        ganglionLayout.addWidget(ganglionCheckBox3)
-        ganglionLayout.addWidget(ganglionCheckBox4)
-        inputLayout.addLayout(ganglionLayout)
-
-        self.settingsWidget.setLayout(settingsLayout)
+        self.initSettingsWindow()
         self.stackedWidget.addWidget(self.settingsWidget)
-
-    def com_port_change(self, text):
-        com_port = int(text)
-        print(com_port)
-
-    def sld_value_change(self):
-        size = self.sld.value()
-        self.sld_label.setText(str(size))
 
     #?------------------------------------------------------------
     #?
@@ -370,6 +306,124 @@ class MainAppWindow(QWidget):
     #* Start Brainwave console stuff
     #*---------------------
 
+    #*---------------------
+    #* Start Settings stuff
+    #*---------------------
+    #creates the settings page
+    def initSettingsWindow(self):
+        #define main settings layout
+        self.settingsLayout = QVBoxLayout()
+        #create slider widget
+        self.initSliderWidget()
+        #create comport input
+        self.initComPortWidget()
+        #create board selection input
+        self.initBoardSelectWidget()
+        #create channel selection
+        self.initBoardChannelsWidget()
+        #set main settings layout in window
+        self.settingsWidget.setLayout(self.settingsLayout)
+
+    #creates slider for settings
+    def initSliderWidget(self):
+        #create cursor speed slider input
+        self.sliderLayout = QHBoxLayout()
+        #create desc label
+        sld_title = QLabel("Adjust Cursor Speed")
+        sld_title.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
+        self.sliderLayout.addWidget(sld_title)
+        #create speed label
+        self.sld_label = QLabel("50")
+        self.sld_label.setStyleSheet("font-weight: bold; color: white; background: #007AA5; border-radius: 3px;")
+        self.sld_label.setAlignment(Qt.AlignCenter | Qt.AlignHCenter)
+        self.sld_label.setGeometry(300,300,350,250)
+        self.sliderLayout.addWidget(self.sld_label)
+        #create slider
+        self.sld = QSlider(Qt.Horizontal)
+        self.sld.setMinimum(1)
+        self.sld.setMaximum(100)
+        self.sld.setMinimumWidth(80)
+        self.sld.setValue(50)
+        self.sld.setTickPosition(QSlider.TicksBelow)
+        self.sld.setTickInterval(1)
+        #call func to display slider value
+        self.sld.valueChanged.connect(self.sld_value_change)
+        #add slider to layout
+        self.sliderLayout.addWidget(self.sld)
+        self.settingsLayout.addLayout(self.sliderLayout)
+    #helper for slider
+    def sld_value_change(self, value):
+        size = value
+        self.sld_label.setText(str(size))
+
+    #creates comport input for settings
+    def initComPortWidget(self):
+        #create layout for com port input
+        self.comPortLayout = QHBoxLayout()
+        #create desc label
+        comPort_label = QLabel("Com Port")
+        self.comPortLayout.addWidget(comPort_label)
+        #create input field
+        self.comPort = QLineEdit()
+        #create int validator (only #'s allowed for input)
+        self.intCheck = QIntValidator()
+        self.comPort.setValidator(self.intCheck)
+        #call func to show comport number
+        self.comPort.textChanged.connect(self.com_port_change)
+        #add comport to layout
+        self.comPortLayout.addWidget(self.comPort)
+        self.settingsLayout.addLayout(self.comPortLayout)
+    #helper for comport
+    def com_port_change(self, text):
+        com_port = int(text)
+        print(com_port)
+
+    #creates board input for settings
+    def initBoardSelectWidget(self):
+        #create layout for board selection input
+        self.boardLayout = QHBoxLayout()
+        #create desc label
+        self.board_label = QLabel("Board")
+        self.boardLayout.addWidget(self.board_label)
+        #create drop down box
+        self.board_select = QComboBox()
+        self.board_select.addItem("Ganglion")
+        self.board_select.addItem("Cyton")
+        #add input box to layout
+        self.boardLayout.addWidget(self.board_select)
+        self.settingsLayout.addLayout(self.boardLayout)
+
+    def initBoardChannelsWidget(self):
+        self.boardChannels = QWidget()
+        self.boardChannels.setFixedHeight(50)
+        self.boardChannels_layout = QVBoxLayout()
+        self.boardChannels.setLayout(self.boardChannels_layout)
+        self.settingsLayout.addWidget(self.boardChannels)
+        self.initGanglionWidget()
+
+    #creates checkboxes for ganglion widget
+    def initGanglionWidget(self):
+        self.ganglion = QWidget()
+        self.ganglion.setFixedHeight(50)
+        self.ganglionLayout = QHBoxLayout()
+        self.ganglion.setLayout(self.ganglionLayout)
+        self.ganglion_label = QLabel("Ganglion Channels")
+        self.ganglionLayout.addWidget(self.ganglion_label)
+        self.ganglionCheckBox1 = QCheckBox("Channel 1")
+        self.ganglionCheckBox2 = QCheckBox("Channel 2")
+        self.ganglionCheckBox3 = QCheckBox("Channel 3")
+        self.ganglionCheckBox4 = QCheckBox("Channel 4")
+        self.ganglionLayout.addWidget(self.ganglionCheckBox1)
+        self.ganglionLayout.addWidget(self.ganglionCheckBox2)
+        self.ganglionLayout.addWidget(self.ganglionCheckBox3)
+        self.ganglionLayout.addWidget(self.ganglionCheckBox4)
+        self.settingsLayout.addWidget(self.ganglion)
+
+    #creates checkboxes for cyton widget
+    def initCytonWidget(self):
+        pass
+
+        
 
 #?------------------------------------------------------------
 #?
