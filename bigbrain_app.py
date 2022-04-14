@@ -18,6 +18,7 @@ from PyQt5.QtGui import QIntValidator
 class MainAppWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QtGui.QIcon('brain.png'))
         self.setWindowTitle("Big Brain - Main Menu")
         self.userName = 'Big Brain'
         today = date.today()
@@ -447,6 +448,7 @@ class MainAppWindow(QWidget):
 class CursorAppWindow(QWidget):
     def __init__(self, parent):
         super().__init__()
+        self.setWindowIcon(QtGui.QIcon('brain.png'))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowTitle("Big Brain - Cursor Control Menu")
         self.pushButton = QPushButton("QUIT CURSOR CONTROL", self)
