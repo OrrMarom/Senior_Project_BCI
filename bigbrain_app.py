@@ -84,8 +84,20 @@ class MainAppWindow(QWidget):
 
         #* Connection Page (boardshim)
         self.connectionWidget = QWidget() 
-
-        connectionLayout = QHBoxLayout()
+        connectionLayout = QVBoxLayout()
+        connectionL1 = QLabel("<--- Begin collecting brainwave data with your OpenBCI headset")
+        connectionL2 = QLabel("<--- View your brainwaves in real-time, on each channel")
+        connectionL3 = QLabel("<--- Control your mouse cursor by using your brain")
+        connectionL4 = QLabel("<--- Save all brainwave data up to this point in time")
+        connectionL5 = QLabel("<--- Visit our website to see a tutorial")
+        connectionL6 = QLabel("<--- Adjust COM port, cursor control speed, disable channels or switch boards")
+        connectionLayout.addWidget(connectionL1)
+        connectionLayout.addWidget(connectionL2)
+        connectionLayout.addWidget(connectionL3)
+        connectionLayout.addWidget(connectionL4)
+        connectionLayout.addWidget(connectionL5)
+        connectionLayout.addWidget(connectionL6)
+        '''
         testlayout1 = QHBoxLayout() 
         testlayout2 = QHBoxLayout()
         connectionLayout.addLayout(testlayout1,2)
@@ -95,6 +107,7 @@ class MainAppWindow(QWidget):
         testText2= QLabel("bop beep")
         testlayout1.addWidget(testText1,1)
         testlayout2.addWidget(testText2,2)
+        '''
         self.connectionWidget.setLayout(connectionLayout)
         # self.connectionTitle = QLabel(self.connectionWidget)
         # self.connectionTitle.setText("Connection Page")
