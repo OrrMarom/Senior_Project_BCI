@@ -52,10 +52,10 @@ class MainAppWindow(QWidget):
         self.button_name_obj = {
             "connectBtn":"Connect Headset",
             "brainwaveBtn":"Brainwave Visualizer",
-            "cursorBtn":"*Control Cursor*",
+            "cursorBtn":"Control Cursor",
             "saveBtn":"Save Data",
-            "tutorialBtn":"*Tutorial*",
-            "settingsBtn":"*Settings*"
+            "tutorialBtn":"Tutorial",
+            "settingsBtn":"Settings"
         }
         page_counter = 0
         for btn_name in self.button_name_obj:
