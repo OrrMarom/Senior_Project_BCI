@@ -314,7 +314,7 @@ class MainAppWindow(QWidget):
     #* Start Tutorial Helper
     #*---------------------
     def openTutorial(self):
-        webbrowser.open('https://tonyvillicana955.wixsite.com/bigbrain')
+        webbrowser.open('https://tonyvillicana955.wixsite.com/bigbrain/services-1')
 
     #*---------------------
     #* Start Brainwave console stuff
