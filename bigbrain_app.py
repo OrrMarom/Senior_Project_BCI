@@ -269,14 +269,19 @@ class MainAppWindow(QWidget):
             self.curves[count].setData(self.data[channel].tolist())
 
             # Calculate data for cursor control to use later
-            delta_band = round(self.data[0][0] * 100, 2)
-            theta_band = round(self.data[0][1] * 100, 2)
-            alpha_band = round(self.data[0][2] * 100, 2)
-            beta_band = round(self.data[0][3] * 100, 2)
-            gamma_band = round(self.data[0][4] * 100, 2)
+            if(channel==1):
+                nfft = DataFilter.get_nearest_power_of_two(self.sampling_rate)
+                psd = DataFilter.get_psd_welch(self.data[channel], nfft, nfft // 2, self.sampling_rate, WindowFunctions.BLACKMAN_HARRIS.value)
+                
+                delta_band = DataFilter.get_band_power(psd, 1.0, 3.0)
+                theta_band = DataFilter.get_band_power(psd, 4.0, 8.0)
+                alpha_band = DataFilter.get_band_power(psd, 8.0, 13.0)
+                beta_band = DataFilter.get_band_power(psd, 13.0, 30.0)
+                gamma_band = DataFilter.get_band_power(psd, 30.0, 45.0)
+                print([delta_band,gamma_band])
 
-            self.jawClench = checkJawClenching(gamma_band)
-            self.eyeBlink = checkEyeBlinking(delta_band,gamma_band)
+                self.jawClench = checkJawClenching(gamma_band)
+                self.eyeBlink = checkEyeBlinking(delta_band,gamma_band)
     
     #*---------------------
     #* Start Cursor Control Helper
@@ -294,7 +299,7 @@ class MainAppWindow(QWidget):
         self.cursorTimer.setInterval(50)
         self.cursorTimer.timeout.connect(self._update_cursor_movement)
         #! Comment out line below to prevent cursor movement
-        #self.cursorTimer.start()
+        self.cursorTimer.start()
 
     def _update_cursor_movement(self):
         if self.jawClench:
@@ -524,12 +529,12 @@ def init_boardshim_item():
 #* Start Cursor Connection stuff
 #*---------------------
 def checkJawClenching(gamma_band):
-    if gamma_band > 40:
+    if gamma_band > 20:
         return True
     else:
         return False
 def checkEyeBlinking(delta_band, gamma_band):
-    if delta_band > 50 and gamma_band < 2:
+    if delta_band > 80 and gamma_band < 5:
         return True
     else:
         return False
