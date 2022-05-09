@@ -311,7 +311,7 @@ class MainAppWindow(QWidget):
 
                 print_thing = str(["frequency:",int(frequency),"bandstuff:",int(delta_band),int(theta_band),int(alpha_band),int(beta_band),int(gamma_band),"eyeblinkstuff:", self.blink_count,self.blink_cooldown_counter,self.jaw_stop_counter,self.jawClench,self.eyeBlink])
                 self.print_file.append(print_thing)
-                # print(print_thing)
+                print(print_thing)
 
                 self.blink_cooldown_counter += self.loop_interval
                 self.jaw_stop_counter += self.loop_interval
@@ -558,7 +558,7 @@ class CursorAppWindow(QWidget):
     
         print('hi')
         self.label_timer = QtCore.QTimer()
-        self.loop_interval = 100 # in milliseconds
+        self.loop_interval = parent.loop_interval # in milliseconds
         self.label_timer.setInterval(self.loop_interval)
         self.label_timer.timeout.connect(lambda: self._change_direction_text(parent))
         self.label_timer.start()
@@ -566,7 +566,6 @@ class CursorAppWindow(QWidget):
 
     def _change_direction_text(self,parent):
         blink_count = parent.blink_count
-        print(blink_count)
         label_val = ""
         if blink_count == 0:
             label_val= "Click"
@@ -580,6 +579,7 @@ class CursorAppWindow(QWidget):
             label_val= "Down"
 
         self.directionLabel.setText(label_val)
+        self.directionLabel.adjustSize()
 
 
     def goback(self, parent):
@@ -648,7 +648,7 @@ def init_boardshim_item():
 #* Start Cursor Connection stuff
 #*---------------------
 def checkJawClenching(gamma_band):
-    if gamma_band > 152:
+    if gamma_band > 15:
         return True
     else:
         return False
